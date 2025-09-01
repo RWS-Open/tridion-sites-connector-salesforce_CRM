@@ -1,0 +1,21 @@
+@model PlayableMedia
+@{
+  var videoId = Model.GetPlayerSetting("VideoId");
+  var playlistId = Model.GetPlayerSetting("PlaylistId");
+  var maxWidth = Model.GetPlayerSetting("PlayerMaxWidth") ?? "960px";
+  string mediaRequestParam;
+  if (videoId != null)
+  {
+    mediaRequestParam = "videoId=" + videoId;
+  }
+  else
+  {
+    mediaRequestParam = "playlistId=" + playlistId;
+  }
+}
+<div style="position: relative; display: block; max-width: @maxWidth;" @Html.DxaEntityMarkup()>
+  <div style="padding-top: 56.25%;">
+    <iframe src="https://players.brightcove.net/@Model.GetPlayerSetting("AccountId")/@Model.GetPlayerSetting("PlayerId")_default/index.html?@mediaRequestParam" 
+            style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; width: 100%; height: 100%;"/>
+  </div>
+</div>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Remember to run msbuild ciBuild.csproj /t:Restore first so the MSBuild extension package is installed from nuget -->
+  <Import Project="sln\packages\MSBuild.Extension.Pack.1.9.1\build\net40\MSBuild.Extension.Pack.targets" Condition="Exists('sln\packages\MSBuild.Extension.Pack.1.9.1\build\net40\MSBuild.Extension.Pack.targets')"/>
+  <PropertyGroup>
+    <!-- Input parameters -->
+    <BuildConfiguration>Release</BuildConfiguration>
+    <ProjectDirectory>$(MSBuildProjectDirectory)</ProjectDirectory>    
+
+  
+    <!-- Version -->
+    <Version Condition="'$(VERSION)' == ''">0.0.0.0</Version>
+    <Version Condition="'$(VERSION)' != ''">$(VERSION)</Version>
+    <VersionMajor>$(Version.Split('.')[0])</VersionMajor>
+    <VersionMinor>$(Version.Split('.')[1])</VersionMinor>
+    <VersionPatch>$(Version.Split('.')[2])</VersionPatch>
+    <VersionBuild>$(Version.Split('.')[3])</VersionBuild>
+    <PackageVersion>$(VersionMajor).$(VersionMinor).$(VersionPatch)</PackageVersion>
+
+   
+    <!--Tools-->
+    <NuGetRepositoryUrl/>
+    <NugetSymbolServerUrl/>
+    <NuGet>&quot;$(ProjectDirectory)\_tools\NuGet.exe&quot;</NuGet>
+    <NuGetPackageDirectory>$(ProjectDirectory)\_NuGet</NuGetPackageDirectory>
+     
+
+    <MsTestExe Condition="'$(MsTestExe)'=='' And Exists('$(MSBuildProgramFiles32)\Microsoft Visual Studio 14.0\Common7\IDE\MSTest.exe')">$(MSBuildProgramFiles32)\Microsoft Visual Studio 14.0\Common7\IDE\MSTest.exe</MsTestExe>
+    <MsTestExe Condition="'$(MsTestExe)'=='' And Exists('$(MSBuildProgramFiles32)\Microsoft Visual Studio 12.0\Common7\IDE\MSTest.exe')">$(MSBuildProgramFiles32)\Microsoft Visual Studio 12.0\Common7\IDE\MSTest.exe</MsTestExe>
+	<MsTestExe Condition="'$(MsTestExe)'=='' And Exists('$(MSBuildProgramFiles32)\Microsoft Visual Studio\2017\Professional\Common7\IDE\MSTest.exe')">$(MSBuildProgramFiles32)\Microsoft Visual Studio\2017\Professional\Common7\IDE\MSTest.exe</MsTestExe>
+  </PropertyGroup>
+
+  <!-- ======================================================================================================================= -->
+  <!-- You should run msbuild with this target first to make sure all packages are installed before building everything else   -->
+  <!-- ======================================================================================================================= -->
+  <Target Name="Restore">
+      <Message Text="Clearing NuGet cache..."/>
+      <Exec Command="$(NuGet) locals all -Clear" />
+      <Message Text="Restoring NuGet packages..."/>
+      <Exec Command="_tools\RestorePackages sln/Sdl.Tridion.Api.Client.sln" WorkingDirectory="$(ProjectDirectory)" />
+  </Target>  
+  
+  <Target Name="PrepareBuild">
+        <Message Text="Preparing build..." Importance="high" />
+        <Message Text="Setting Assembly Info"/>
+
+        <ItemGroup>
+        <AssemblyInfoFile Include="src\Sdl.Tridion.Api.Client\CommonAssemblyInfo.cs">
+            <Attributes>Normal</Attributes>
+        </AssemblyInfoFile>
+        </ItemGroup>
+
+        <Message Text="Setting Assembly Info @(AssemblyInfoFile)"/>
+
+        <MSBuild.ExtensionPack.Framework.DateAndTime TaskAction="Get" Format="yyyy">
+        <Output TaskParameter="Result" PropertyName="Year"/>
+        </MSBuild.ExtensionPack.Framework.DateAndTime>
+
+        <MSBuild.ExtensionPack.FileSystem.File TaskAction="SetAttributes" Files="@(AssemblyInfoFile)"/>
+
+        <MSBuild.ExtensionPack.Framework.AssemblyInfo
+        AssemblyInfoFiles="@(AssemblyInfoFile)"
+        AssemblyVersion="$(Version)"
+        AssemblyFileVersion="$(VersionMajor).$(VersionMinor).$(VersionPatch).$(VersionBuild)"
+        AssemblyCopyright="Copyright &#169; 2014-$(Year) RWS Group"
+        SkipVersioning="false"
+        />
+
+        <Message Text="Restoring NuGet packages for extensions..."/>
+        <Exec Command="_tools\RestorePackages sln/Sdl.Tridion.Api.Client.sln" WorkingDirectory="$(ProjectDirectory)" />
+    </Target>
+
+
+  
+  <Target Name="RunBuild">
+      <Message Text="Running Build..."/>
+
+	    <MSBuild Projects="sln\Sdl.Tridion.Api.Client.sln" Properties="Configuration=$(BuildConfiguration);Platform=Any CPU;AsmVersion=$(Version);FileVersion=$(Version)" Targets="Build" StopOnFirstFailure="true" />
+	  	 
+  </Target>
+  
+  <Target Name="Build">
+	<Message Text="Start build..." Importance="high" />       
+    <CallTarget Targets="PrepareBuild"/>
+    <CallTarget Targets="RunBuild"/>		
+    <CallTarget Targets="CreatePackages"/>  
+  </Target>
+
+
+   <Target Name="CreatePackages">
+        <Message Importance="high" Text="Creating NuGet packages in '$(NuGetPackageDirectory)' ..."/>
+        <Message Text="Package Version: $(PackageVersion)"/>
+       
+        <!-- Create nuget package  -->
+        <Exec Command="$(NuGet) pack Sdl.Tridion.Api.Client.nuspec -Version $(PackageVersion)" WorkingDirectory="$(NuGetPackageDirectory)"/>
+        <!-- Create symbols nuget package. Note the use of .symbols in the filename! -->
+        <Exec Command="$(NuGet) pack Sdl.Tridion.Api.Client.symbols.nuspec -Symbols -Version $(PackageVersion)" WorkingDirectory="$(NuGetPackageDirectory)"/>
+    </Target>
+
+    <Target Name="PublishPackages" Condition="'$(NuGetRepositoryUrl)' != ''">
+        <Message Importance="high" Text="Publishing NuGet packages to '$(NuGetRepositoryUrl)' ..."/>
+       
+        <Exec Command="$(NuGet) push Sdl.Tridion.Api.Client.$(PackageVersion).nupkg -Source $(NuGetRepositoryUrl)" WorkingDirectory="$(NuGetPackageDirectory)"/>
+
+    </Target>
+
+    <Target Name="Test" Condition="'$(BuildConfiguration)' == 'Release'">
+        <Message Text="Running unit tests..." />
+
+        <Exec Command='sln\packages\OpenCover.4.6.519\tools\OpenCover.Console.exe -register:user "-target:$(MsTestExe)" "-targetargs:/testcontainer:src\Sdl.Tridion.Api.Client.Tests\bin\$(BuildConfiguration)\Sdl.Tridion.Api.Client.Tests.dll /resultsfile:TestResults.trx" "-filter:+[Sdl.*]* -[*Test*]*" -output:CoverageReports\Coverage.xml"'/>
+
+        <Exec Command='sln\packages\ReportGenerator.2.4.4.0\tools\ReportGenerator.exe "-reports:CoverageReports\Coverage.xml" "-targetdir:CoverageReports"'/>
+    </Target>
+  
+</Project>

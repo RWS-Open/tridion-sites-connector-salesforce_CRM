@@ -1,0 +1,188 @@
+﻿@model IntegrationForm
+@*
+    CRM Form    
+    Based on the following third-parties:
+        - Bootstrap Validator: http://1000hz.github.io/bootstrap-validator/
+        - Date picker: http://eonasdan.github.io/bootstrap-datetimepicker
+        - Moments dates: http://momentjs.com/docs/
+*@
+<div @Html.DxaEntityMarkup()>
+    <h1 @Html.DxaPropertyMarkup(() => Model.Title)>@Model.Title</h1>
+    @if (Model.Content != null)
+    {
+        <div class="content" style="margin-bottom: 16px;" @Html.DxaPropertyMarkup(() => Model.Content)>
+            @Html.DxaRichText(Model.Content)
+        </div>
+    }
+    <form method="post" data-toggle="validator" action="@(WebRequestContext.Localization.Path + Model.PostUrl)">
+        @if (Model.Fields == null || !Model.Fields.Any())
+        {
+            @* Display an empty field container when no fields are defined *@
+            <div class="form-group" style="border-radius: 4px; padding-left: 10px;" @Html.DxaPropertyMarkup(() => Model.Fields, 0)>
+                <label style="color: lightgrey;">[Field]</label>
+                <input class="form-control" style="border-style: dashed; border-color: lightgrey; border-width: 2px;pointer-events: none;" tabindex="-1">
+            </div>
+        }
+        else
+        {
+            if (!WebRequestContext.IsPreview)
+            {
+                @* If we put in an Anti Forgery Token, the Page can't be edited in XPM anymore *@
+                // TODO: Remove this using Javascript instead so it is only removed when inside XPM
+                @Html.AntiForgeryToken()
+            }
+
+            int i = 0;
+            foreach (var field in Model.Fields)
+            {
+                if (field.IsReadOnly && Model.FormType.Equals("Create", StringComparison.OrdinalIgnoreCase) ||
+                    field.InvalidFieldDefinition == true)
+                {
+                    continue;
+                }
+                <div class="form-group @(field.AggregatedFieldValidation.IsRequired ? "required" : "")" style="border-radius: 4px; padding-left: 10px;" @Html.DxaPropertyMarkup(() => Model.Fields, i++)>
+                   <label class="control-label" for="@field.ExternalField.FieldName" @Html.DxaPropertyMarkup(() => field.Label)>@field.Label</label>
+                     <div 
+                        @if (field.AggregatedFieldValidation.Type.Equals("date"))
+                        {
+                            @: class="input-group datepicker" 
+                            if (field.AggregatedFieldValidation.Format != null)
+                            {
+                                @: data-date-format="@field.AggregatedFieldValidation.Format" 
+                            }
+                        } @Html.DxaPropertyMarkup(() => field.ExternalField)>                    
+                     
+                        @if (field.ExternalField != null)
+                        {
+                            <input 
+                                @if (field.AggregatedFieldValidation.Type != null)
+                                {
+                                    if (field.AggregatedFieldValidation.Type.Equals("date"))
+                                    {
+                                        @: data-date-selector="true"
+                                    }
+                                    else
+                                    {
+                                        @: type="@field.AggregatedFieldValidation.Type"
+                                    }
+                                }
+                                @if (field.AggregatedFieldValidation.IsRequired)
+                                {
+                                    @: required
+                                }
+                                @if (field.AggregatedFieldValidation.Pattern != null)
+                                {
+                                    @: pattern="@field.AggregatedFieldValidation.Pattern"
+                                }
+                                @if (field.AggregatedFieldValidation.MinLength != null)
+                                {
+                                    @: minlength="@field.AggregatedFieldValidation.MinLength"
+                                }
+                                @if (field.AggregatedFieldValidation.MaxLength != null)
+                                {
+                                    @: maxlength="@field.AggregatedFieldValidation.MaxLength"
+                                }
+                                @if (field.AggregatedFieldValidation.ErrorMessage != null)
+                                {
+                                    @: data-error="@field.AggregatedFieldValidation.ErrorMessage"
+                                }
+                                @if (field.AggregatedFieldValidation.AjaxValidator != null)
+                                {
+                                    @: data-remote="@field.AggregatedFieldValidation.AjaxValidator"
+                                }
+                            
+                                name="@field.ExternalField.FieldName"
+                                class="form-control"
+                                @if (field.Value != null)
+                                {
+                                    @:value="@field.Value"
+                                }
+                                @if (field.IsReadOnly)
+                                {
+                                    @:disabled="disabled"
+                                }
+                            />
+                            if (field.AggregatedFieldValidation.Type.Equals("date") )
+                            {
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            }
+                            <div class="help-block with-errors"></div>
+                        }
+                        else
+                        {
+                            <input style="border-style: dashed; border-color: lightgrey; border-width: 2px;">
+                        }
+                        
+                    
+                     </div>
+                </div>
+            }
+
+            if (Model.StaticFields != null)
+            {
+                foreach (var staticField in Model.StaticFields)
+                {
+                    <input type="hidden" name="@staticField.ExternalField.FieldName" value="@staticField.FieldValue">
+                }
+            }
+            if (Model.AdditionalFields != null)
+            {
+                foreach (var addField in Model.AdditionalFields)
+                {
+                    <input type="hidden" name="____@addField.ResolveFieldName()" value="@addField.ResolveFieldValue()">
+                }
+            }
+            <input type="hidden" name="___formId" value="@Model.FormId">
+            if (Model.SuccessUrl != null)
+            {
+                <input type="hidden" name="___successUrl" value="@Model.SuccessUrl.Url">
+            }
+            if (Model.ErrorUrl != null)
+            {
+                <input type="hidden" name="___errorUrl" value="@Model.ErrorUrl.Url">
+            }
+
+        }
+        
+        @** TODO: This is CRM specific **@
+        @if (Model.PrivacyStatement !=  null)
+        {
+            <div class="form-group" style="font-style: italic; padding-left: 10px;" @Html.DxaPropertyMarkup(()=> Model.PrivacyStatement)>
+                @Html.DxaRichText(Model.PrivacyStatement)
+            </div>
+        }
+        @if (Model.RequiredTickboxLabel != null)
+        {
+            <div class="form-group required" style="border-radius: 4px; padding-left: 10px;">
+                <div class="checkbox">
+                    <label class="control-label" @Html.DxaPropertyMarkup(()=> Model.RequiredTickboxLabel)>
+                        <input type="checkbox" id="__requiredTickbox" data-error="@Model.RequiredTickboxErrorMessage" required>
+                        @Html.DxaRichText(@Model.RequiredTickboxLabel)
+                    </label>
+                    <div class="help-block with-errors"></div>
+                </div>
+            </div>
+        }
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary crm-form-submit-button" style="margin-left: 50%; margin-right: 50%;">@Model.SubmitLabel</button>
+            @* Generate a link version of the button that works better with XPM (only on staging sites) *@
+
+            @if (WebRequestContext.IsPreview)
+            {
+                <a class="btn btn-primary" style="margin-left: 50%; margin-right: 50%; display: none;" @Html.DxaPropertyMarkup(()=> Model.SubmitLabel)>@Model.SubmitLabel</a>
+            }            
+        </div>
+        @if (Model.ErrorMessage != null)
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
+        else if (Model.SuccessMessage != null)
+        {
+            <div class="alert alert-success">@Model.SuccessMessage</div>
+        }
+
+    </form>
+</div>

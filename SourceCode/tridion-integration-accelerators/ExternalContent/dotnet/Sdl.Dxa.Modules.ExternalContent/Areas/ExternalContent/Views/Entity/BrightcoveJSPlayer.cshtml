@@ -1,0 +1,30 @@
+@model PlayableMedia
+@{
+    var videoId = Model.GetPlayerSetting("VideoId");
+    var playlistId = Model.GetPlayerSetting("PlaylistId");
+    var maxWidth = Model.GetPlayerSetting("PlayerMaxWidth") ?? "1920px";
+}
+<div @Html.DxaEntityMarkup()>
+  <div style="max-width: @maxWidth;">
+    <video-js
+      @if (videoId != null)
+      {
+        @: data-video-id="@videoId"
+      }
+      else
+      {
+        @: data-playlist-id="@playlistId"
+      }
+      data-account="@Model.GetPlayerSetting("AccountId")"
+      data-player="@Model.GetPlayerSetting("PlayerId")"
+      data-embed="default"
+      data-application-id=""
+      class="vjs-fluid"
+      data-usage="cms:sdltridionsites:1.0.0:javascript"
+      controls="">
+    </video-js>
+    <script
+      src="//players.brightcove.net/@Model.GetPlayerSetting("AccountId")/@Model.GetPlayerSetting("PlayerId")_default/index.min.js">
+    </script>
+  </div>
+</div>

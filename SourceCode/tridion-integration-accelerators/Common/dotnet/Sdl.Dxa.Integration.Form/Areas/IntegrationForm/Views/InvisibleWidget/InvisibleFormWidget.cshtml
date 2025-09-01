@@ -1,0 +1,7 @@
+@model InvisibleFormWidget
+@if (WebRequestContext.IsPreview)
+{    
+    <div @Html.DxaEntityMarkup() class="xpm-button" style="height: 64px; width: 250px; border-style: dashed; border-color: lightgrey; border-width: 2px; z-index: 100; position: fixed; top: 8px; left: 500px; text-align: center; padding-top: 6px; margin: 0; color: lightgrey;">
+         Invisible Widget <br/><i>@Model.Title</i>
+    </div>
+}

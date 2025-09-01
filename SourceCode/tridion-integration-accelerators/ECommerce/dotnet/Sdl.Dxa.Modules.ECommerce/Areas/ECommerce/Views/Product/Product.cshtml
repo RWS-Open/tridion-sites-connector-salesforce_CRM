@@ -1,0 +1,18 @@
+﻿@model Product
+<div @Html.DxaEntityMarkup()>
+   
+     <div>
+        <h1>@Model.Title</h1>
+    </div>
+
+    <div class="content">
+        <div>
+            <img src="@Model.Images.FirstOrDefault()">
+        </div>
+        <h3>@Model.Price</h3>
+        <br />
+        <div>
+            @Html.DxaRichText(Model.Description)
+        </div>
+    </div>
+</div>

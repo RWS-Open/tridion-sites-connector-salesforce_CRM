@@ -1,0 +1,19 @@
+﻿@model ExternalContent
+<div @Html.DxaEntityMarkup()>
+   <h1 property="headline">@Model.Title</h1>
+   @(Model.IsImage ? Html.Media(Model) : Html.Raw(Model.ToHtml()))
+   @**
+   Alternative use the content fields
+   <p>@Model.GetNormalizedContent("body")</p>
+   **@
+
+   @**
+   @foreach (var contentField in Model.ContentFields)
+   {
+      if (contentField.Type == ContentFieldType.RichText)
+      {
+         @Html.Raw(contentField.Value)
+      }
+   }
+   **@
+</div>

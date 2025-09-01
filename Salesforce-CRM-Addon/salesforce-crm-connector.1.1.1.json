@@ -1,0 +1,41 @@
+{
+"configuration": {
+"SalesforceCRM": {
+"namespaces": {
+"salesforce": {
+"isolationLevel": "InProcess",
+"factoryType": "Dynamic",
+"configuration" : {
+"clientId": "",
+                  "clientSecret": "",
+                  "username": "",
+                  "password": "",
+                  "entityTypes": ["Account", "Contact", "Lead", "ContentVersion", "VisitorTracking"],
+"pageSize": 100
+}
+}
+}
+}
+},
+"sitesCm": {
+"isEnabled": true,
+"SalesforceCRM": {
+"displayName": "Salesforce",
+"stubFolders": ["tcm:2-167-2"],
+"configuration": {
+"exposeDataTypes": true
+},
+"namespaces": {
+"salesforce": {
+"isolationLevel": "Process"
+}
+}
+}
+},
+"staging": {
+"isEnabled": true
+}
+
+
+
+}
