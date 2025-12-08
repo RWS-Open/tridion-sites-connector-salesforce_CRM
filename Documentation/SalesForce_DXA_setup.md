@@ -1,9 +1,13 @@
-1)	Import the cms content from “C:\Users\sbhupali\OneDrive - RWS\001_Pre-Sales-Bangalore\_SalesForceCRM\Onedemo-2025-R3-SF-CRM\CRM-Accelerator-1.0-Beta2-OD2025_R3”
+## SalesForce CRM Configuragtion Steps
+
+Download the [SalesForce_CRM_Deployables.zip](https://github.com/RWS-Open/tridion-sites-connector-salesforce_CRM/releases)
+
+1)	Import the cms content from “..\SalesForce_CRM_Deployables\DXA_Files\CRM-Accelerator-1.0-Beta2-OD2025_R3”
 	 
 	Powershell run as administrator : 
 
-	Navigate to 
-	PS C:\Users\sbhupali\OneDrive - RWS\001_Pre-Sales-Bangalore\_SalesForceCRM\Onedemo-2025-R3-SF-CRM\CRM-Accelerator-1.0-Beta2-OD2025_R3\import> 
+	Navigate to below path using powershell 
+	PS ..\SalesForce_CRM_Deployables\DXA_Files\CRM-Accelerator-1.0-Beta2-OD2025_R3\import> 
 
 	Run the command
 
@@ -16,7 +20,7 @@
 
 
 2)	Upload the SalesForce CRM  connector  and udp-content-connector-framework-extension-assembly-12.2.0-1061-core to addon Service 
-	a.(C:\Users\sbhupali\OneDrive - RWS\001_Pre-Sales-Bangalore\_SalesForceCRM\Onedemo-2025-R3-SF-CRM\Salesforce-CRM-Addon\)  
+	a.(..\SalesForce_CRM_Deployables\Salesforce-CRM-Addon\)  
 	b. connector-framework-extension  (C:\softwares\Tridion_Site\Tridion+Sites+10.1.1-RC1\Content Delivery\roles\content\add-ons\udp-content-connector-framework-extension-assembly-12.2.0-1061-core.zip)
 	c.Restart the service content and deployer
 
@@ -133,7 +137,7 @@ field details for media
 			Note : i have removed <taf_claim_visitor>vis</taf_claim_visitor>
 			  
 
-21)	copy the bin folder files (C:\SDL_Dev\tridion-sites-connector-salesforce_CRM\DXA_Files\CRM-Accelerator-1.0-Beta2-OD2025_R3\bin)  to C:\tridion\Websites\DXA_Preview\Bin\ folder  
+21)	copy the bin folder files (..\SalesForce_CRM_Deployables\DXA_Files\CRM-Accelerator-1.0-Beta2-OD2025_R3\bin)  to C:\tridion\Websites\DXA_Preview\Bin\ folder  
 			Sdl.Tridion.Api.Client.dll
 			Sdl.Dxa.Modules.Crm
 			Sdl.Dxa.Integration.Form
@@ -144,7 +148,7 @@ field details for media
 			Tridion.ConnectorFramework.Contracts
 
 	
-22)	copy the CRM and IntegrationForm folder from (C:\Users\sbhupali\OneDrive - RWS\001_Pre-Sales-Bangalore\_SalesForceCRM\CRM-Accelerator-1.0-Beta2\Areas)  to C:\tridion\Websites\DXA_Preview\Areas\ folder 
+22)	copy the CRM and IntegrationForm folder from (..\SalesForce_CRM_Deployables\DXA_Files\CRM-Accelerator-1.0-Beta2-OD2025_R3\Areas\)  to C:\tridion\Websites\DXA_Preview\Areas\ folder 
 		
 
 	  
