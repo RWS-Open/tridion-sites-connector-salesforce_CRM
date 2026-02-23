@@ -10,6 +10,7 @@
                   "clientSecret": "",
                   "username": "",
                   "password": "",
+				  "loginEndpoint": "",
                   "entityTypes": ["Account", "Contact", "Lead", "ContentVersion", "VisitorTracking"],
 "pageSize": 100
 }
