@@ -1,0 +1,22 @@
+{
+  "manifestVersion": "1.0",
+  "version": "1.1.1",
+  "id": "salesforce-crm-connector",
+  "name": "Salesforce CRM",
+  "author": "RWS Group",
+  "description": "CRM connector to Salesforce",
+  "requireConfiguration": "yes",
+  "extensions": [{
+    "name" : "SalesforceCRM",
+    "type": "Connector",
+    "properties": {
+      "connectorRuntime": "Java",
+      "factoryType": "Dynamic",
+      "isolationLevel": "Process",
+      "connectorClassName": "com.sdl.tridion.connectorframework.connector.salesforce.SalesforceConnector",
+      "configuration": {
+
+      }
+    }
+  }]
+}

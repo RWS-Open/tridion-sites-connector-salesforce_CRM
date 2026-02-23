@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!-- TODO: Have parent for connectors ??? -->
+    <parent>
+        <artifactId>udp-common-root</artifactId>
+        <groupId>com.sdl.delivery</groupId>
+        <version>12.2.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.sdl.tridion.connectorframework</groupId>
+    <artifactId>salesforce-crm-connector</artifactId>
+    <version>1.1.1</version>
+
+    <name>Salesforce CRM Connector</name>
+    <description>Salesforce CRM Connector for SDL Tridion Sites</description>
+
+   <!-- <scm>
+        <developerConnection>scm:git:ssh://git@${scm.connection.prefix.url}/tcf/salesforce-crm-connector.git
+        </developerConnection>
+        <url>https://${scm.web.prefix.url}/TCF/repos/salesforce-crm-connector</url>
+    </scm>-->
+
+    <properties>
+        <connectorfw.version>42.2.1-SNAPSHOT</connectorfw.version>
+    </properties>
+
+    <dependencies>
+        <!--<dependency>
+            <groupId>com.sdl.tridion.connectorframework</groupId>
+            <artifactId>connector-sdk</artifactId>
+            <version>${connectorfw.version}</version>
+        </dependency>-->
+        <dependency>
+            <groupId>com.sdl.tridion.connectorframework</groupId>
+            <artifactId>connector-sdk</artifactId>
+            <version>${connectorfw.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- TODO: Consider to use another 3PP here for Salesforce?? -->
+        <dependency>
+            <groupId>com.frejo</groupId>
+            <artifactId>force-rest-api</artifactId>
+            <version>0.0.44</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>buildnumber-maven-plugin</artifactId>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <!-- TODO: Use a standard connector POM here with standard set of plugins -->
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/zip.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>create-archive</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

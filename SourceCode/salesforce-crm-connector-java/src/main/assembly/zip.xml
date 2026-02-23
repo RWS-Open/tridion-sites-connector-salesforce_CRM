@@ -1,0 +1,40 @@
+<assembly>
+    <id>package</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <fileSets>
+        <fileSet>
+            <directory>src/main/resources</directory>
+            <outputDirectory></outputDirectory>
+            <includes>
+                <include>**/**</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+
+    <files>
+        <file>
+            <source>${project.build.directory}/${project.artifactId}-${project.version}.jar</source>
+            <outputDirectory></outputDirectory>
+        </file>
+    </files>
+    <dependencySets>
+        <dependencySet>
+            <scope>runtime</scope>
+            <outputDirectory></outputDirectory>
+
+            <excludes>
+                <exclude>com.sdl.tridion.connectorframework:connector-framework-contracts:jar:*</exclude>
+                <exclude>com.sdl.tridion.remoting:tridion-remoting-contracts:jar:*</exclude>
+                <exclude>org.javassist:javassist:jar:*</exclude>
+                <exclude>org.slf4j:slf4j-api:jar:*</exclude>
+                <exclude>ch.qos.logback:logback-classic:jar:*</exclude>
+                <exclude>ch.qos.logback:logback-core:jar:*</exclude>
+            </excludes>
+
+        </dependencySet>
+    </dependencySets>
+
+</assembly>
