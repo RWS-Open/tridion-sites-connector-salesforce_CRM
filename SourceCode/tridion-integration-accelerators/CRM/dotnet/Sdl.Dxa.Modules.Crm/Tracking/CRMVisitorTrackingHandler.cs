@@ -6,6 +6,7 @@ using Sdl.Dxa.Integration.Client;
 using Sdl.Dxa.Modules.Crm.Models;
 using Sdl.Web.Common.Logging;
 using Sdl.Web.Common.Models;
+using Sdl.Web.Tridion.ApiClient;
 using Tridion.ConnectorFramework.Connector.SDK;
 
 namespace Sdl.Dxa.Modules.Crm.Tracking
@@ -76,45 +77,60 @@ namespace Sdl.Dxa.Modules.Crm.Tracking
 
             if (visitor == null)
             {
-                Log.Info("Loading visitor from CRM...");
-                
-                // TODO: Store anonymous tracking records either in the session or as an anonymous visitor record in Salesforce connected to the tracking cookie
-                // TODO: Should the CRM contact be merged if existing record is already there?
-                
-                // Load visitor from CRM
-                //
-                var result = IntegrationApiClientProvider.Instance.Client.QueryEntities(
-                    new EntityFilter
-                    {
-                        SearchText = trackingKey,
-                        EntityType = type,
-                        Context = RootEntity.CreateRootEntityIdentity(namespaceId, null)
-                    });
+                try
+                {
+                    Log.Info("Loading visitor from CRM...");
 
-                if (result.DynamicEntities?.Count() > 0)
-                {
-                    // Pick the most recent item if there are several CRM entities associated with the same tracking key.
-                    // Should normally only occur in demo environments
+                    // TODO: Store anonymous tracking records either in the session or as an anonymous visitor record in Salesforce connected to the tracking cookie
+                    // TODO: Should the CRM contact be merged if existing record is already there?
+
+                    // Load visitor from CRM
                     //
-                    visitor = result.DynamicEntities.Last();
-                    
-                    // Save the loaded entity into the session
-                    //
-                    EntitySession.Instance.SaveEntity(type, visitor);
-                }
-                else
-                {
-                    if (_trackAnonymousVisitors)
+                    var result = IntegrationApiClientProvider.Instance.Client.QueryEntities(
+                        new EntityFilter
+                        {
+                            SearchText = trackingKey,
+                            EntityType = type,
+                            Context = RootEntity.CreateRootEntityIdentity(namespaceId, null)
+                        });
+
+                    if (result.DynamicEntities?.Count() > 0)
                     {
-                        Log.Info("Creating an anonymous visitor...");
-                        EntitySession.Instance.SaveEntity(ANONYMOUS_VISITOR_TYPE, new AnonymousVisitor());
+                        // Pick the most recent item if there are several CRM entities associated with the same tracking key.
+                        // Should normally only occur in demo environments
+                        //
+                        visitor = result.DynamicEntities.Last();
+
+                        // Save the loaded entity into the session
+                        //
+                        EntitySession.Instance.SaveEntity(type, visitor);
                     }
-                    
-                    // Set the entity to not available to avoid trying to load it again
-                    // TODO: Check this once more if this is the right way to do this
-                    EntitySession.Instance.SaveEntity(type, EntitySessionConstants.NotAvailable);
+                    else
+                    {
+                        if (_trackAnonymousVisitors)
+                        {
+                            Log.Info("Creating an anonymous visitor...");
+                            EntitySession.Instance.SaveEntity(ANONYMOUS_VISITOR_TYPE, new AnonymousVisitor());
+                        }
+
+                        // Set the entity to not available to avoid trying to load it again
+                        // TODO: Check this once more if this is the right way to do this
+                        EntitySession.Instance.SaveEntity(type, EntitySessionConstants.NotAvailable);
+                    }
                 }
-                
+                catch (ApiClientException ex) when (ex.Message.Contains("External connector is not configured") ||
+                                                     ex.Message.Contains("cannot perform external content operations"))
+                {
+                    // External connector not available - skip CRM visitor loading gracefully
+                    Log.Warn($"CRM visitor loading skipped - external connector not available: {ex.Message}");
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    // Log other unexpected errors but don't break page rendering
+                    Log.Error($"Error during CRM visitor loading, skipping: {ex.Message}", ex);
+                    return null;
+                }                                
             }
 
             return visitor;

@@ -30,18 +30,19 @@ namespace Sdl.Dxa.Integration.Client
         private GraphQLClient _graphQlClient;
 
         private static ExternalNamespace[] _namespaces;
-        
+        private static bool _namespacesInitialized = false;
+        private static bool _connectorAvailable = true;
+
         public IntegrationApi(GraphQLClient graphQlClient)
         {
             //System.Diagnostics.Debugger.Launch();
             //System.Diagnostics.Debugger.Break();
             _graphQlClient = graphQlClient;
-            if (_namespaces == null)
-            {
-                _namespaces = GetNamespaces();
-            }
+
+            // Lazy loading: namespaces loaded on first use, not in constructor
+            // This allows the app to start even if external connector is not configured
         }
-        
+
         public DynamicEntity GetEntity(IEntityIdentity identity)
         {
          //   System.Diagnostics.Debugger.Launch();
@@ -274,7 +275,32 @@ namespace Sdl.Dxa.Integration.Client
         private ExternalNamespace[] GetNamespaces() =>
             _graphQlClient.Execute<ExternalNamespacesResponse>(new GraphQLRequest
                 {Query = IntegrationApiRequests.NamespaceQuery}).TypedResponseData.ExternalNamespaces;
-        
+
+        private ExternalNamespace[] GetNamespacesLazy() {
+            if (!_namespacesInitialized)
+            {
+                try
+                {
+                    _namespaces = GetNamespaces();
+                    _connectorAvailable = true;
+                }
+                catch (Exception ex) when (ex.Message.Contains("externalNamespaces") ||
+                                          ex.Message.Contains("FieldUndefined") ||
+                                          ex.GetType().Name.Contains("GraphQLClientException"))
+                {
+                    // Connector not configured - this is expected in some environments
+                    _namespaces = new ExternalNamespace[0];
+                    _connectorAvailable = false;
+                    // Log warning but don't throw
+                    System.Diagnostics.Trace.TraceWarning(
+                        "External connector not available. External content operations will not be supported. " +
+                        "This is expected if no external connector is configured. Error: " + ex.Message);
+                }
+                _namespacesInitialized = true;
+            }
+            return _namespaces;
+        }
+
         private string GenerateEntityIdentityString(IEntityIdentity identity) {
             var sb = new StringBuilder();
             bool firstField = true;
@@ -331,8 +357,18 @@ namespace Sdl.Dxa.Integration.Client
         }
         
         private string GenerateEntityFragment(string namespaceId, string type) {
-        //    System.Diagnostics.Debugger.Launch();
-       //     System.Diagnostics.Debugger.Break();
+            //    System.Diagnostics.Debugger.Launch();
+            //     System.Diagnostics.Debugger.Break();
+
+            var namespaces = GetNamespacesLazy();
+
+            if (!_connectorAvailable || namespaces == null || namespaces.Length == 0)
+            {
+                throw new ApiClientException(
+                    $"External connector is not configured or available. Cannot perform external content operations. " +
+                    $"Namespace: {namespaceId}, Type: {type}");
+            }
+
             foreach (var ns in _namespaces) 
             {
                 if (ns.Namespace.Equals(namespaceId)) 
